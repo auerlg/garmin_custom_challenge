@@ -6,4 +6,4 @@ Prerequisites: python3, pip installed:
 pip install garminconnect
 python3 strength_v2.py 2024-11-17
 ```
-strength_v2 will display the total active minutes spent on strength training.
+strength_v2 will display the total active minutes spent on strength training since the supplied date.
