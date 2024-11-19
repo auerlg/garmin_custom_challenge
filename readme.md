@@ -11,8 +11,17 @@ GARMIN_PASSWORD=my_secure_password
 3. run with date parameter
 ```console
 pip install garminconnect
-python3 strength_v2.py 2024-11-17
+python3 multi-counter.py 2024-11-17
 ```
 strength_v2 will display the total active minutes spent on strength training since the supplied date.
+
+example output:
+```console
+Logged in successfully!
+Fetched activities successfully!
+Total moving duration for strength training activities since 2024-11-01: 67.77 minutes
+Total PUSH_UP reps since 2024-11-01: 140
+Total PULL_UP reps since 2024-11-01: 7
+```
 
 ### Alternative to the python client in go: https://github.com/abrander/garmin-connect
