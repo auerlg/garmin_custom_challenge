@@ -3,6 +3,8 @@ from datetime import datetime
 from garminconnect import Garmin
 from dotenv import load_dotenv
 import os
+import json
+
 
 
 def load_credentials():
@@ -85,27 +87,98 @@ def count_pushups_pullups(activities, start_date):
             continue
     return pushups, pullups
 
-def aggregate_backwards_distance(activities, start_date):
+# def aggregate_activities_by_tags(activities, start_date, input_file):
+#     """
+#     Aggregate values for activities based on tags and parameters provided in a JSON input file.
+
+#     Args:
+#         activities (list): List of activity dictionaries fetched from Garmin Connect.
+#         start_date (datetime): The starting date to filter activities.
+#         input_file (str): Path to the JSON file containing tag-parameter pairs.
+
+#     Returns:
+#         dict: A dictionary with tags as keys and their aggregated values as values.
+#     """
+#     # Load tags and aggregation parameters from the JSON input file
+#     try:
+#         with open(input_file, 'r') as file:
+#             tag_parameters = json.load(file)
+#     except Exception as e:
+#         print(f"Error reading input file: {e}")
+#         return {}
+
+#     # Initialize results dictionary
+#     results = {tag: 0.0 for tag in tag_parameters}
+
+#     # Process activities and aggregate values
+#     for tag, parameter in tag_parameters.items():
+#         for act in activities:
+#             try:
+#                 activity_date = datetime.strptime(act['startTimeLocal'], "%Y-%m-%d %H:%M:%S")
+#                 if activity_date >= start_date:
+#                     # Debugging: Check if the tag matches and the parameter exists
+#                     if 'description' in act and tag in act['description'].lower():
+#                         print(f"Matching tag '{tag}' in activity: {act['description']}")
+#                         value = act.get(parameter, 0.0)
+#                         print(f"Adding {value} for parameter '{parameter}'")
+#                         results[tag] += value
+#             except (KeyError, ValueError) as e:
+#                 print(f"Skipped activity due to error: {e}")
+#                 continue
+
+
+#     return results
+
+def aggregate_activities_by_criteria(activities, start_date, input_file):
     """
-    Calculate the total distance of activities containing 'backwards' in their description.
+    Aggregate values for activities based on activity type, tag, and aggregation parameter from the JSON input file.
 
     Args:
         activities (list): List of activity dictionaries fetched from Garmin Connect.
         start_date (datetime): The starting date to filter activities.
+        input_file (str): Path to the JSON file containing aggregation criteria.
 
     Returns:
-        float: The total distance (in meters) of activities with 'backwards' in their description.
+        dict: A dictionary with descriptions of criteria and their aggregated values.
     """
-    total_distance = 0.0
-    for act in activities:
-        try:
-            activity_date = datetime.strptime(act['startTimeLocal'], "%Y-%m-%d %H:%M:%S")
-            if activity_date >= start_date and 'description' in act:
-                if 'backwards' in act['description'].lower():
-                    total_distance += act.get('distance', 0.0)
-        except (KeyError, ValueError):
-            continue
-    return total_distance
+    try:
+        # Load criteria from the JSON input file
+        with open(input_file, 'r') as file:
+            criteria_list = json.load(file)
+    except Exception as e:
+        print(f"Error reading input file: {e}")
+        return {}
+
+    # Initialize results dictionary
+    results = {}
+
+    # Process each criterion
+    for criterion in criteria_list:
+        activity_type = criterion.get("activityType", "")
+        tag = criterion.get("tag", "").lower()
+        parameter = criterion.get("aggregationParameter", "")
+        description = f"{activity_type or 'any'}-{tag or 'any'}-{parameter}"
+
+        # Initialize the result for this criterion
+        results[description] = 0.0
+
+        # Aggregate values for the current criterion
+        for act in activities:
+            try:
+                activity_date = datetime.strptime(act['startTimeLocal'], "%Y-%m-%d %H:%M:%S")
+                if activity_date >= start_date:
+                    # Match based on activityType or tag (if provided)
+                    matches_type = not activity_type or act['activityType']['typeKey'] == activity_type
+                    matches_tag = not tag or ('description' in act and tag in act['description'].lower())
+
+                    if matches_type and matches_tag:
+                        value = act.get(parameter, 0.0)
+                        results[description] += value
+            except (KeyError, ValueError):
+                continue
+
+    return results
+
 
 
 def main():
@@ -116,8 +189,19 @@ def main():
 
     total_moving_duration = calculate_moving_duration(activities, start_date)
     pushups, pullups = count_pushups_pullups(activities, start_date)
-# Aggregate the total distance for 'backwards' activities
-    total_backwards_distance = aggregate_backwards_distance(activities, start_date)
+    # input_file = "list-tags.json"  # Path to the JSON file
+    # # Load the JSON file to access the parameter for each tag
+    # with open("list-tags.json", "r") as file:
+    #     tag_parameters = json.load(file)
+    # results = aggregate_activities_by_tags(activities, start_date, input_file)
+
+
+
+
+    # Aggregate based on criteria in the input file
+    input_file = "list-tags.json"  # Path to the JSON file
+    results = aggregate_activities_by_criteria(activities, start_date, input_file)
+
 
 
 
@@ -125,8 +209,14 @@ def main():
     print(f"Total moving duration for strength training activities since {start_date}: {total_moving_duration / 60:.2f} minutes")
     print(f"Total PUSH_UP reps since {start_date}: {pushups}")
     print(f"Total PULL_UP reps since {start_date}: {pullups}")
-    print(f"Total distance for activities with 'backwards' in the description since {start_date}: {total_backwards_distance / 1000:.2f} kilometers")
-
+    # # Print results
+    # for tag, total in results.items():
+    #     print(f"Total {tag} ({tag_parameters[tag]}): {total:.2f}")
+    
+    
+    # Print results
+    for description, total in results.items():
+        print(f"Total {description}: {total:.2f}")
 
 
 if __name__ == "__main__":

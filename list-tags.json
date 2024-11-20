@@ -1,0 +1,23 @@
+[
+    {
+        "activityType": "",
+        "tag": "barefoot",
+        "aggregationParameter": "distance"
+    },
+    {
+        "activityType": "",
+        "tag": "backwards",
+        "aggregationParameter": "distance"
+    },
+    {
+        "activityType": "strength_training",
+        "tag": "",
+        "aggregationParameter": "movingDuration"
+    },
+    {
+        "activityType": "cycling",
+        "tag": "",
+        "aggregationParameter": "movingDuration"
+    }
+]
+
