@@ -1,2 +1,5 @@
 .env
 *.log
+users.json
+*.bak
+*.bak.bak
