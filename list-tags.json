@@ -2,22 +2,29 @@
     {
         "activityType": "",
         "tag": "barefoot",
-        "aggregationParameter": "distance"
+        "aggregationParameter": "distance",
+        "multiplicator": 0.001,
+        "unit": "Km"
     },
     {
         "activityType": "",
         "tag": "backwards",
-        "aggregationParameter": "distance"
+        "aggregationParameter": "distance",
+        "multiplicator": 0.001,
+        "unit": "Km"
     },
     {
         "activityType": "strength_training",
         "tag": "",
-        "aggregationParameter": "movingDuration"
+        "aggregationParameter": "movingDuration",
+        "multiplicator": 0.016666667,
+        "unit": "minutes"
     },
     {
         "activityType": "cycling",
         "tag": "",
-        "aggregationParameter": "movingDuration"
+        "aggregationParameter": "distance",
+        "multiplicator": 0.001,
+        "unit": "Km"
     }
 ]
-

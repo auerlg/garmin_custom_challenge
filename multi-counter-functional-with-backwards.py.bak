@@ -89,8 +89,8 @@ def count_pushups_pullups(activities, start_date):
 
 def aggregate_activities_by_criteria(activities, start_date, input_file):
     """
-    Aggregate values for activities based on activity type, tag, and aggregation parameter 
-    from the JSON input file. Scaling (multiplicator) is applied only at the end.
+    Aggregate values for activities based on activity type, tag, aggregation parameter, 
+    multiplicator, and output unit from the JSON input file.
 
     Args:
         activities (list): List of activity dictionaries fetched from Garmin Connect.
@@ -98,8 +98,8 @@ def aggregate_activities_by_criteria(activities, start_date, input_file):
         input_file (str): Path to the JSON file containing aggregation criteria.
 
     Returns:
-        dict: A dictionary with descriptions of criteria and their raw aggregated values.
-        dict: A dictionary mapping each criterion to its unit and multiplicator for output.
+        dict: A dictionary with descriptions of criteria and their aggregated values.
+        dict: A dictionary mapping each criterion to its unit for display purposes.
     """
     try:
         # Load criteria from the JSON input file
@@ -109,9 +109,9 @@ def aggregate_activities_by_criteria(activities, start_date, input_file):
         print(f"Error reading input file: {e}")
         return {}, {}
 
-    # Initialize results and metadata dictionaries
-    raw_results = {}
-    metadata = {}
+    # Initialize results and units dictionaries
+    results = {}
+    units = {}
 
     # Process each criterion
     for criterion in criteria_list:
@@ -122,9 +122,9 @@ def aggregate_activities_by_criteria(activities, start_date, input_file):
         unit = criterion.get("unit", "")
         description = f"{activity_type or 'any'}-{tag or 'any'}-{parameter}"
 
-        # Initialize the raw result and metadata for this criterion
-        raw_results[description] = 0.0
-        metadata[description] = {"multiplicator": multiplicator, "unit": unit}
+        # Initialize the result and unit for this criterion
+        results[description] = 0.0
+        units[description] = unit
 
         # Aggregate values for the current criterion
         for act in activities:
@@ -137,14 +137,14 @@ def aggregate_activities_by_criteria(activities, start_date, input_file):
 
                     if matches_type and matches_tag:
                         value = act.get(parameter, 0.0)
-                        raw_results[description] += value
-                        # print(f"Processing: {act['activityId']} - {act.get('activityName', 'Unnamed Activity')} - {act['activityType']['typeKey']} - {act.get('description', 'No description')} - {parameter}: {value} ({multiplicator} NOT applied)")
+                        scaled_value = value * multiplicator
+                        print(f"Processing: {act['activityName']} - {parameter}: {value} ({multiplicator} applied)")
 
+                        results[description] += scaled_value
             except (KeyError, ValueError):
                 continue
 
-    return raw_results, metadata
-
+    return results, units
 
 
 
@@ -158,22 +158,21 @@ def main():
     pushups, pullups = count_pushups_pullups(activities, start_date)
 
 
-    # Aggregate based on criteria in the input file
+
+   # Aggregate based on criteria in the input file
     input_file = "list-tags.json"  # Path to the JSON file
-    raw_results, metadata = aggregate_activities_by_criteria(activities, start_date, input_file)
+    results, units = aggregate_activities_by_criteria(activities, start_date, input_file)
 
 
     print(f"Total moving duration for strength training activities since {start_date}: {total_moving_duration / 60:.2f} minutes")
     print(f"Total PUSH_UP reps since {start_date}: {pushups}")
     print(f"Total PULL_UP reps since {start_date}: {pullups}")
 
-    # Print results with scaling and units
-    for description, raw_total in raw_results.items():
-        multiplicator = metadata[description]["multiplicator"]
-        unit = metadata[description]["unit"]
-        scaled_total = raw_total * multiplicator
-        print(f"Total {description}: {scaled_total:.2f} {unit}")
-
+    
+    # Print results with units
+    for description, total in results.items():
+        unit = units.get(description, "")
+        print(f"Total {description}: {total:.2f} {unit}")
 
 
 if __name__ == "__main__":
