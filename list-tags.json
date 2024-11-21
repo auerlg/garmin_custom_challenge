@@ -1,5 +1,12 @@
 [
     {
+        "activityType": "running",
+        "tag": "",
+        "aggregationParameter": "distance",
+        "multiplicator": 0.001,
+        "unit": "Km"
+    },
+        {
         "activityType": "",
         "tag": "barefoot",
         "aggregationParameter": "distance",
@@ -9,6 +16,13 @@
     {
         "activityType": "",
         "tag": "backwards",
+        "aggregationParameter": "distance",
+        "multiplicator": 0.001,
+        "unit": "Km"
+    },
+    {
+        "activityType": "",
+        "tag": "backwards, barefoot",
         "aggregationParameter": "distance",
         "multiplicator": 0.001,
         "unit": "Km"
